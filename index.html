@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+  <title>Epass Payment Manager · Private</title>
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== CSS VARIABLES ===== */
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #7c3aed;
+      --success: #059669;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --bg: #f0f4fe;
+      --bg-card: rgba(255, 255, 255, 0.55);
+      --text: #0a1628;
+      --text-light: #2d3a5e;
+      --text-muted: #5a6a8a;
+      --border: rgba(255, 255, 255, 0.4);
+      --shadow: 0 20px 40px -12px rgba(0, 20, 50, 0.08);
+      --radius: 40px;
+      --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0a1628;
+      --bg-card: rgba(20, 30, 60, 0.7);
+      --text: #f0f4fe;
+      --text-light: #c8d0e0;
+      --text-muted: #8a9bb8;
+      --border: rgba(255, 255, 255, 0.08);
+      --shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ===== RESET ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background 0.4s, color 0.4s;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    /* animated bg */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 20%, rgba(37, 99, 235, 0.06) 0%, transparent 60%),
+                  radial-gradient(circle at 70% 80%, rgba(124, 58, 237, 0.05) 0%, transparent 50%);
+      z-index: -2;
+      animation: bgFloat 18s ease-in-out infinite alternate;
+    }
+    @keyframes bgFloat {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      100% { transform: translate(-2%, 2%) rotate(2deg); }
+    }
+
+    /* ===== CONTAINER ===== */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* ===== GLASS CARD ===== */
+    .glass {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 20px 0 30px;
+    }
+    .header .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+    .header .logo i {
+      font-size: 2.2rem;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header .logo span {
+      background: linear-gradient(135deg, var(--text), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .header-actions button {
+      padding: 10px 20px;
+      border-radius: 30px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .header-actions button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
+    }
+    .header-actions .btn-danger {
+      background: linear-gradient(135deg, var(--danger), #b91c1c);
+      color: white;
+      border: none;
+    }
+    .header-actions .btn-success {
+      background: linear-gradient(135deg, var(--success), #047857);
+      color: white;
+      border: none;
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ===== STATS ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px 20px;
+      text-align: center;
+      transition: var(--transition);
+    }
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-card .number {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .stat-card .label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .stat-card .number.green { color: var(--success); }
+    .stat-card .number.red { color: var(--danger); }
+
+    /* ===== FORM ===== */
+    .form-section {
+      padding: 28px 30px;
+      margin-bottom: 30px;
+    }
+    .form-section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .form-section h2 i { color: var(--primary); }
+    .form-section .sub {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      margin-bottom: 4px;
+    }
+    .form-group label i { color: var(--primary); margin-right: 4px; }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1.5px solid rgba(37, 99, 235, 0.10);
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(4px);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: 0.25s;
+      color: var(--text);
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.06);
+      background: white;
+    }
+    .form-group input::placeholder { color: #8a9bb8; }
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .form-actions button {
+      padding: 14px 32px;
+      border-radius: 30px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .form-actions .btn-submit {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
+    }
+    .form-actions .btn-submit:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.35);
+    }
+    .form-actions .btn-reset {
+      background: rgba(255,255,255,0.5);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .form-actions .btn-reset:hover { background: rgba(255,255,255,0.8); }
+
+    /* ===== TABLE / PAYMENT LIST ===== */
+    .list-section {
+      padding: 28px 30px;
+      margin-bottom: 30px;
+    }
+    .list-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .list-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .list-header h2 i { color: var(--primary); }
+    .list-header .search-box {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .list-header .search-box input {
+      padding: 10px 16px;
+      border-radius: 30px;
+      border: 1.5px solid rgba(37, 99, 235, 0.10);
+      background: rgba(255,255,255,0.6);
+      font-family: inherit;
+      font-size: 0.9rem;
+      color: var(--text);
+      min-width: 200px;
+    }
+    .list-header .search-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .list-header .search-box select {
+      padding: 10px 16px;
+      border-radius: 30px;
+      border: 1.5px solid rgba(37, 99, 235, 0.10);
+      background: rgba(255,255,255,0.6);
+      font-family: inherit;
+      font-size: 0.9rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .list-header .search-box select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    thead {
+      background: rgba(37, 99, 235, 0.04);
+      border-bottom: 2px solid var(--border);
+    }
+    th {
+      padding: 14px 16px;
+      text-align: left;
+      font-weight: 700;
+      color: var(--text-light);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(37, 99, 235, 0.04);
+      color: var(--text);
+    }
+    tr:hover td { background: rgba(37, 99, 235, 0.02); }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-badge.success { background: rgba(5, 150, 105, 0.15); color: var(--success); }
+    .status-badge.pending { background: rgba(217, 119, 6, 0.15); color: var(--warning); }
+    .status-badge.failed { background: rgba(220, 38, 38, 0.15); color: var(--danger); }
+
+    .action-btns {
+      display: flex;
+      gap: 6px;
+    }
+    .action-btns button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 10px;
+      transition: 0.2s;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .action-btns button:hover { background: rgba(37, 99, 235, 0.06); }
+    .action-btns .delete:hover { color: var(--danger); background: rgba(220, 38, 38, 0.06); }
+
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state i {
+      font-size: 3rem;
+      color: var(--primary);
+      opacity: 0.3;
+      margin-bottom: 12px;
+    }
+
+    /* ===== TOAST NOTIFICATION ===== */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 24px;
+      box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      z-index: 999;
+      max-width: 90%;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .toast.success i { color: var(--success); }
+    .toast.error i { color: var(--danger); }
+    .toast i { font-size: 1.4rem; }
+    .toast .msg { font-weight: 500; font-size: 0.95rem; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .header { flex-direction: column; align-items: stretch; gap: 12px; }
+      .header-actions { flex-wrap: wrap; }
+      .header-actions button { flex: 1; justify-content: center; }
+      .form-section, .list-section { padding: 20px; }
+      .list-header { flex-direction: column; align-items: stretch; }
+      .list-header .search-box { flex-direction: column; align-items: stretch; }
+      .list-header .search-box input,
+      .list-header .search-box select { min-width: 100%; }
+      th, td { padding: 10px 12px; font-size: 0.8rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .toast { bottom: 16px; right: 16px; left: 16px; max-width: calc(100% - 32px); }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .stat-card .number { font-size: 1.5rem; }
+      .form-actions button { width: 100%; justify-content: center; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ===== HEADER ===== -->
+  <div class="header">
+    <div class="logo">
+      <i class="fas fa-id-card"></i>
+      <span>Epass Payment Manager</span>
+      <span style="font-size:0.6rem; background:rgba(37,99,235,0.1); padding:2px 12px; border-radius:20px; color:var(--primary);">Private</span>
+    </div>
+    <div class="header-actions">
+      <button onclick="exportData()"><i class="fas fa-download"></i> Export</button>
+      <button onclick="document.getElementById('importFile').click()"><i class="fas fa-upload"></i> Import</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)" />
+      <button class="btn-danger" onclick="deleteAll()"><i class="fas fa-trash-alt"></i> Delete All</button>
+      <button class="btn-success" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+      <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== STATS ===== -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="number" id="totalPayments">0</div>
+      <div class="label">Total Payments</div>
+    </div>
+    <div class="stat-card">
+      <div class="number green" id="totalAmount">₹0</div>
+      <div class="label">Total Amount</div>
+    </div>
+    <div class="stat-card">
+      <div class="number green" id="successCount">0</div>
+      <div class="label">Successful</div>
+    </div>
+    <div class="stat-card">
+      <div class="number red" id="failedCount">0</div>
+      <div class="label">Failed</div>
+    </div>
+  </div>
+
+  <!-- ===== ADD PAYMENT FORM ===== -->
+  <div class="form-section glass">
+    <h2><i class="fas fa-plus-circle"></i> Add New Payment</h2>
+    <p class="sub">Enter payment details — all data stays private in your browser</p>
+    
+    <form id="paymentForm" onsubmit="addPayment(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label><i class="fas fa-user"></i> Full Name</label>
+          <input type="text" id="fullName" placeholder="John Doe" required />
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-mobile-alt"></i> Phone Number</label>
+          <input type="tel" id="phone" placeholder="+91 98765 43210" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label><i class="fas fa-rupee-sign"></i> Amount (₹)</label>
+          <input type="number" id="amount" placeholder="999" min="1" required />
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-calendar-alt"></i> Payment Date</label>
+          <input type="date" id="paymentDate" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label><i class="fas fa-tag"></i> Payment Status</label>
+          <select id="status">
+            <option value="success">✅ Success</option>
+            <option value="pending">⏳ Pending</option>
+            <option value="failed">❌ Failed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-hashtag"></i> Epass ID</label>
+          <input type="text" id="epassId" placeholder="Auto-generated" readonly style="background:rgba(37,99,235,0.04);" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Save Payment</button>
+        <button type="reset" class="btn-reset"><i class="fas fa-undo"></i> Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ===== PAYMENT LIST ===== -->
+  <div class="list-section glass">
+    <div class="list-header">
+      <h2><i class="fas fa-list"></i> Payment Records</h2>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 Search name, ID, phone..." oninput="renderTable()" />
+        <select id="filterStatus" onchange="renderTable()">
+          <option value="all">All Status</option>
+          <option value="success">✅ Success</option>
+          <option value="pending">⏳ Pending</option>
+          <option value="failed">❌ Failed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Epass ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="8">
+              <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>No payment records yet. Add your first payment above!</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:0.85rem; color:var(--text-muted);">
+      <span id="recordCount">0 records</span>
+      <span><i class="fas fa-shield-alt" style="color:var(--primary);"></i> All data stored locally — no server</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast">
+  <i class="fas fa-check-circle"></i>
+  <span class="msg">Payment saved successfully!</span>
+</div>
+
+<!-- ============================================================ -->
+<script>
+  // ================================================================
+  // DATA LAYER (localStorage)
+  // ================================================================
+  const STORAGE_KEY = 'epass_payments_data';
+  let payments = [];
+  let editMode = false;
+  let editId = null;
+
+  // Load data from localStorage
+  function loadData() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          payments = parsed;
+        } else {
+          // Sample data
+          payments = getSampleData();
+          saveData();
+        }
+      } else {
+        payments = getSampleData();
+        saveData();
+      }
+    } catch (e) {
+      console.error('Error loading data:', e);
+      payments = getSampleData();
+      saveData();
+    }
+    updateStats();
+    renderTable();
+    updateEpassId();
+    setDefaultDate();
+  }
+
+  function getSampleData() {
+    return [
+      { 
+        id: 'ep_' + Date.now() + '_1', 
+        epassId: 'EP-2026-001', 
+        name: 'Rahul Sharma', 
+        phone: '+91 98765 43210', 
+        amount: 2499, 
+        date: '2026-01-15', 
+        status: 'success' 
+      },
+      { 
+        id: 'ep_' + (Date.now() + 100) + '_2', 
+        epassId: 'EP-2026-002', 
+        name: 'Priya Patel', 
+        phone: '+91 87654 32109', 
+        amount: 999, 
+        date: '2026-01-18', 
+        status: 'pending' 
+      },
+      { 
+        id: 'ep_' + (Date.now() + 200) + '_3', 
+        epassId: 'EP-2026-003', 
+        name: 'Amit Kumar', 
+        phone: '+91 76543 21098', 
+        amount: 4999, 
+        date: '2026-01-20', 
+        status: 'success' 
+      }
+    ];
+  }
+
+  function saveData() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payments));
+      updateStats();
+      renderTable();
+    } catch (e) {
+      console.error('Error saving data:', e);
+      showToast('Error saving data!', 'error');
+    }
+  }
+
+  // ================================================================
+  // HELPERS
+  // ================================================================
+  function generateId() {
+    return 'ep_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+  }
+
+  function generateEpassId() {
+    const year = new Date().getFullYear();
+    // Find max number from existing epass IDs
+    let maxNum = 0;
+    payments.forEach(p => {
+      if (p.epassId) {
+        const parts = p.epassId.split('-');
+        if (parts.length === 3) {
+          const num = parseInt(parts[2]);
+          if (!isNaN(num) && num > maxNum) maxNum = num;
+        }
+      }
+    });
+    const nextNum = maxNum + 1;
+    return `EP-${year}-${String(nextNum).padStart(3, '0')}`;
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    try {
+      const d = new Date(dateStr + 'T00:00:00');
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
+  function formatCurrency(amount) {
+    const num = Number(amount);
+    if (isNaN(num)) return '₹0';
+    return '₹' + num.toLocaleString('en-IN');
+  }
+
+  function getStatusBadge(status) {
+    const map = {
+      success: '<span class="status-badge success">✅ Success</span>',
+      pending: '<span class="status-badge pending">⏳ Pending</span>',
+      failed: '<span class="status-badge failed">❌ Failed</span>'
+    };
+    return map[status] || map.pending;
+  }
+
+  function setDefaultDate() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('paymentDate').value = today;
+  }
+
+  function updateEpassId() {
+    document.getElementById('epassId').value = generateEpassId();
+  }
+
+  // ================================================================
+  // STATS
+  // ================================================================
+  function updateStats() {
+    const total = payments.length;
+    const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const success = payments.filter(p => p.status === 'success').length;
+    const failed = payments.filter(p => p.status === 'failed').length;
+    const pending = payments.filter(p => p.status === 'pending').length;
+    
+    document.getElementById('totalPayments').textContent = total;
+    document.getElementById('totalAmount').textContent = formatCurrency(totalAmount);
+    document.getElementById('successCount').textContent = success;
+    document.getElementById('failedCount').textContent = failed;
+    document.getElementById('recordCount').textContent = `${total} records (${success} success, ${pending} pending, ${failed} failed)`;
+  }
+
+  // ================================================================
+  // TABLE RENDER
+  // ================================================================
+  function renderTable() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const filterStatus = document.getElementById('filterStatus').value;
+    
+    let filtered = payments.filter(p => {
+      const matchSearch = (p.name || '').toLowerCase().includes(search) ||
+                          (p.epassId || '').toLowerCase().includes(search) ||
+                          (p.phone || '').includes(search);
+      const matchStatus = filterStatus === 'all' || p.status === filterStatus;
+      return matchSearch && matchStatus;
+    });
+
+    // Sort by date (newest first)
+    filtered.sort((a, b) => {
+      const dateA = a.date ? new Date(a.date) : new Date(0);
+      const dateB = b.date ? new Date(b.date) : new Date(0);
+      return dateB - dateA;
+    });
+
+    const tbody = document.getElementById('tableBody');
+    
+    if (filtered.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>${payments.length === 0 ? 'No payment records yet. Add your first payment above!' : 'No matching records found.'}</p>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map((p, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td><strong>${p.epassId || 'N/A'}</strong></td>
+        <td>${p.name || 'N/A'}</td>
+        <td>${p.phone || 'N/A'}</td>
+        <td><strong>${formatCurrency(p.amount)}</strong></td>
+        <td>${formatDate(p.date)}</td>
+        <td>${getStatusBadge(p.status)}</td>
+        <td>
+          <div class="action-btns">
+            <button onclick="editPayment('${p.id}')" title="Edit"><i class="fas fa-edit"></i></button>
+            <button class="delete" onclick="deletePayment('${p.id}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ================================================================
+  // CRUD OPERATIONS
+  // ================================================================
+  function addPayment(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('fullName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const amount = document.getElementById('amount').value;
+    const date = document.getElementById('paymentDate').value;
+    const status = document.getElementById('status').value;
+
+    if (!name || !phone || !amount || !date) {
+      showToast('Please fill all required fields.', 'error');
+      return;
+    }
+
+    if (isNaN(amount) || Number(amount) <= 0) {
+      showToast('Please enter a valid amount.', 'error');
+      return;
+    }
+
+    if (editMode && editId) {
+      // Update existing payment
+      const index = payments.findIndex(p => p.id === editId);
+      if (index !== -1) {
+        payments[index] = {
+          ...payments[index],
+          name,
+          phone,
+          amount: Number(amount),
+          date,
+          status
+        };
+        saveData();
+        showToast(`Payment updated! ${payments[index].epassId}`, 'success');
+        editMode = false;
+        editId = null;
+        document.querySelector('.btn-submit').innerHTML = '<i class="fas fa-save"></i> Save Payment';
+        document.getElementById('paymentForm').reset();
+        setDefaultDate();
+        updateEpassId();
+        return;
+      }
+    }
+
+    // Add new payment
+    const newPayment = {
+      id: generateId(),
+      epassId: generateEpassId(),
+      name,
+      phone,
+      amount: Number(amount),
+      date,
+      status
+    };
+
+    payments.push(newPayment);
+    saveData();
+    
+    document.getElementById('paymentForm').reset();
+    setDefaultDate();
+    updateEpassId();
+    showToast(`Payment added! Epass: ${newPayment.epassId}`, 'success');
+  }
+
+  function deletePayment(id) {
+    if (!confirm('Are you sure you want to delete this payment record?')) return;
+    const payment = payments.find(p => p.id === id);
+    payments = payments.filter(p => p.id !== id);
+    saveData();
+    showToast(`Payment ${payment?.epassId || ''} deleted.`, 'success');
+    
+    if (editMode && editId === id) {
+      editMode = false;
+      editId = null;
+      document.querySelector('.btn-submit').innerHTML = '<i class="fas fa-save"></i> Save Payment';
+      document.getElementById('paymentForm').reset();
+      setDefaultDate();
+      updateEpassId();
+    }
+  }
+
+  function deleteAll() {
+    if (payments.length === 0) {
+      showToast('No records to delete.', 'error');
+      return;
+    }
+    if (!confirm('⚠️ Delete ALL payment records? This cannot be undone!')) return;
+    payments = [];
+    saveData();
+    editMode = false;
+    editId = null;
+    document.querySelector('.btn-submit').innerHTML = '<i class="fas fa-save"></i> Save Payment';
+    document.getElementById('paymentForm').reset();
+    setDefaultDate();
+    updateEpassId();
+    showToast('All payment records deleted.', 'success');
+  }
+
+  function editPayment(id) {
+    const payment = payments.find(p => p.id === id);
+    if (!payment) {
+      showToast('Payment not found!', 'error');
+      return;
+    }
+    
+    editMode = true;
+    editId = id;
+    
+    document.getElementById('fullName').value = payment.name || '';
+    document.getElementById('phone').value = payment.phone || '';
+    document.getElementById('amount').value = payment.amount || '';
+    document.getElementById('paymentDate').value = payment.date || '';
+    document.getElementById('status').value = payment.status || 'pending';
+    document.getElementById('epassId').value = payment.epassId || '';
+    
+    document.querySelector('.btn-submit').innerHTML = '<i class="fas fa-edit"></i> Update Payment';
+    
+    // Scroll to form
+    document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showToast('Edit the details and click Update.', 'success');
+  }
+
+  // ================================================================
+  // EXPORT / IMPORT
+  // ================================================================
+  function exportData() {
+    if (payments.length === 0) {
+      showToast('No data to export.', 'error');
+      return;
+    }
+    try {
+      const dataStr = JSON.stringify(payments, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `epass_payments_${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Data exported successfully!', 'success');
+    } catch (e) {
+      showToast('Error exporting data!', 'error');
+    }
+  }
+
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (!Array.isArray(imported)) throw new Error('Invalid format');
+        if (imported.length === 0) {
+          showToast('File is empty.', 'error');
+          return;
+        }
+        
+        // Validate each item
+        let validCount = 0;
+        const existingIds = new Set(payments.map(p => p.id));
+        imported.forEach(p => {
+          if (p.name && p.amount && !existingIds.has(p.id)) {
+            if (!p.id) p.id = generateId();
+            if (!p.epassId) p.epassId = generateEpassId();
+            payments.push(p);
+            validCount++;
+            existingIds.add(p.id);
+          }
+        });
+        
+        if (validCount === 0) {
+          showToast('No new valid records to import.', 'error');
+          return;
+        }
+        
+        saveData();
+        showToast(`Imported ${validCount} new records.`, 'success');
+      } catch (err) {
+        showToast('Invalid file format. Please use JSON export.', 'error');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  // ================================================================
+  // THEME TOGGLE
+  // ================================================================
+  function toggleTheme() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    const icon = document.querySelector('.theme-toggle i');
+    icon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  }
+
+  // ================================================================
+  // TOAST NOTIFICATION
+  // ================================================================
+  let toastTimeout;
+
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const icon = toast.querySelector('i');
+    const msg = toast.querySelector('.msg');
+    
+    icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    msg.textContent = message;
+    toast.className = 'toast show ' + type;
+    
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 4000);
+  }
+
+  // ================================================================
+  // INITIALIZATION
+  // ================================================================
+  document.addEventListener('DOMContentLoaded', function() {
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (savedTheme === 'dark') {
+      document.querySelector('.theme-toggle i').className = 'fas fa-sun';
+    }
+    
+    // Load data
+    loadData();
+    
+    // Set up reset button
+    document.querySelector('button[type="reset"]').addEventListener('click', function(e) {
+      e.preventDefault();
+      editMode = false;
+      editId = null;
+      document.querySelector('.btn-submit').innerHTML = '<i class="fas fa-save"></i> Save Payment';
+      document.getElementById('paymentForm').reset();
+      setDefaultDate();
+      updateEpassId();
+      showToast('Form reset.', 'success');
+    });
+  });
+
+  console.log('🔒 Epass Payment Manager v2.0 loaded — all data is private (localStorage only)');
+  console.log(`📊 ${payments.length} payment records loaded.`);
+</script>
+
+</body>
+</html>
